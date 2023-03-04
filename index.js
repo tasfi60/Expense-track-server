@@ -20,12 +20,7 @@ async function run(){
         app.get('/expense', async(req,res) =>{
           const query = {};
           const cursor = expenseCollection.find(query);
-          const  expense = await cursor.toArray();gi
-
-
-
-
-          
+          const  expense = await cursor.toArray();
           res.send(expense);
         })
 
