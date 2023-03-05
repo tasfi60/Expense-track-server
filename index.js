@@ -71,7 +71,7 @@ async function run(){
         const myexpense = await cursor.toArray();
         res.send( myexpense );
       
-           });
+      });
   
 
     //   app.get('/expense/:uid', async (req, res) => {
@@ -84,8 +84,19 @@ async function run(){
     //     res.send(expense);
 
     // });
+       app.delete('/expense/:id', async (req, res) => {
+       const id = req.params.id;
+       const query = { _id: new ObjectId(id) };
+       const update = { $set: { is_deleted: true } };
+       const options = { new: true };
+     
+       const result = await expenseCollection.findOneAndUpdate(query, update, options);
        
+       res.send(result);
+       console.log('trying to soft delete', id);
+});
 
+         
        
   }
   finally{
