@@ -1,7 +1,7 @@
-const express = require('express')
+const express = require("express");
 const app = express();
-const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 // middle wares
@@ -10,108 +10,143 @@ app.use(express.json());
 
 const uri = `mongodb+srv://ExpenseDB:F52ktVyHmdY9cu5@cluster0.idbesa6.mongodb.net/?retryWrites=true&w=majority`;
 
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-
-async function run(){
-  try{
-        const expenseCollection = client.db('Expense-Manage').collection('Expenses');
-
-
-        app.get('/expense', async(req,res) =>{
-          const query = {};
-          const cursor = expenseCollection.find(query);
-          const  expense = await cursor.toArray();
-          res.send(expense);
-        })
-
-
-
-        app.post('/expense', async(req,res) =>{
-          const expense =  req.body;
-          const result = await expenseCollection.insertOne(expense);
-          res.send(result); 
-        })
-
-        app.get('/expense/:id', async(req,res) =>{
-          const id = req.params.id;
-          const query = {_id: new ObjectId(id)};
-          const result = await expenseCollection.findOne(query);
-          res.send(result);
-      })
-
-      
-        app.put('/expense/:id',async(req,res) =>{
-          const id = req.params.id;
-          const filter = {_id: new ObjectId(id)};
-          const expense = req.body;
-          const option = {upsert: true};
-          const updateexpense = {
-            $set: {
-                Category: expense.category,
-                Currency: expense.currency,
-                Price: expense.price,
-
-            }
-          }
-          const result = await expenseCollection.updateOne(filter,updateexpense,option);
-          res.send(result);
-
-      })
-
-           app.get('/expense', async (req, res) => {
-           let query = {};
-         
-           if (req.query.uid) {
-             query = {
-               uid: req.query.uid,
-               is_deleted: false, // only show expenses that are not deleted
-             };
-           }
-         
-           const cursor = expenseCollection.find(query);
-           const expenses = await cursor.toArray();
-           res.send(expenses);
-         });
-
-  
-
-    //   app.get('/expense/:uid', async (req, res) => {
-
-    //     const uid = req.params.uid;
-    //     const query = { uid }
-    //     console.log(uid);
-    //     const cursor = await expenseCollection.find(query);
-    //     const expense = await cursor.toArray();
-    //     res.send(expense);
-
-    // });
-       app.delete('/expense/:id', async (req, res) => {
-       const id = req.params.id;
-       const query = { _id: new ObjectId(id) };
-       const update = { $set: { is_deleted: true } };
-       const options = { new: true };
-     
-       const result = await expenseCollection.findOneAndUpdate(query, update, options);
-       
-       res.send(result);
-       console.log('trying to soft delete', id);
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
 });
 
-         
-       
-  }
-  finally{
+async function run() {
+  try {
+    const expenseCollection = client
+      .db("Expense-Manage")
+      .collection("Expenses");
+    const mainexpenseCollection = client
+      .db("Expense-Manage")
+      .collection("Mainexpense");
 
-  }
+    //FOR BUDGET
 
+    app.get("/expense", async (req, res) => {
+      const query = {};
+      const cursor = expenseCollection.find(query);
+      const expense = await cursor.toArray();
+      res.send(expense);
+    });
+
+    app.post("/expense", async (req, res) => {
+      const expense = req.body;
+      const result = await expenseCollection.insertOne(expense);
+      res.send(result);
+    });
+
+    app.get("/expense/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await expenseCollection.findOne(query);
+      res.send(result);
+    });
+    app.get("/mainexpense/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { budgetId: id };
+      const result = await mainexpenseCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/mainexpense/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { budgetId: id };
+      const expense = req.body;
+      console.log(expense);
+      const options = { upsert: true };
+      const updateexpense = {
+        $set: {
+          Expense: expense.price,
+          is_deleted: false,
+        },
+      };
+      const result = await mainexpenseCollection.updateOne(
+        filter,
+        updateexpense,
+        options
+      );
+      res.send(result);
+    });
+
+    app.get("/expense", async (req, res) => {
+      let query = {};
+      if (req.query.uid) {
+        query = {
+          uid: req.query.uid,
+        };
+        console.log(req.query.uid);
+      }
+
+      const cursor = expenseCollection.find(query);
+      const myexpense = await cursor.toArray();
+      res.send(myexpense);
+    });
+
+    app.get("/mainexpense", async (req, res) => {
+      let query = {};
+      if (req.query.uid) {
+        query = {
+          uid: req.query.uid,
+        };
+        console.log(req.query.uid);
+      }
+
+      const cursor = mainexpenseCollection.find(query);
+      const myexpense = await cursor.toArray();
+      res.send(myexpense);
+    });
+
+    app.delete("/mainexpense/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { budgetId: id };
+      const update = { $set: { is_deleted: true } };
+      const options = { new: true };
+
+      const result = await mainexpenseCollection.findOneAndUpdate(
+        query,
+        update,
+        options
+      );
+
+      res.send(result);
+      console.log("trying to soft delete", id);
+    });
+
+    //FOR EXPENSE
+
+    app.get("/mainexpense", async (req, res) => {
+      const query = {};
+      const cursor = mainexpenseCollection.find(query);
+      const expense = await cursor.toArray();
+      res.send(expense);
+    });
+
+    app.post("/mainexpense", async (req, res) => {
+      const expense = req.body;
+      const result = await mainexpenseCollection.insertOne(expense);
+      res.send(result);
+    });
+
+    app.get("/mainexpense/:id", async (req, res) => {
+      const uid = req.query.uid;
+      const query = { uid: uid };
+      const result = await mainexpenseCollection.findOne(query);
+      res.send(result);
+    });
+  } finally {
+  }
 }
 
-run().catch(err => console.error(err));
+run().catch((err) => console.error(err));
 
-
- app.get('/',(req,res) => {
-  res.send('Simple node Server is Running');
+app.get("/", (req, res) => {
+  res.send("Simple node Server is Running");
 });
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
-  })
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`);
+});
