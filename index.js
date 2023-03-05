@@ -32,6 +32,58 @@ async function run(){
           res.send(result); 
         })
 
+        app.get('/expense/:id', async(req,res) =>{
+          const id = req.params.id;
+          const query = {_id: new ObjectId(id)};
+          const result = await expenseCollection.findOne(query);
+          res.send(result);
+      })
+
+      
+        app.put('/expense/:id',async(req,res) =>{
+          const id = req.params.id;
+          const filter = {_id: new ObjectId(id)};
+          const expense = req.body;
+          const option = {upsert: true};
+          const updateexpense = {
+            $set: {
+                Category: expense.category,
+                Currency: expense.currency,
+                Price: expense.price,
+
+            }
+          }
+          const result = await expenseCollection.updateOne(filter,updateexpense,option);
+          res.send(result);
+
+      })
+
+      app.get('/expense', async(req,res) => {
+        let query = {};
+        if(req.query.uid){
+          query = {
+               uid: req.query.uid
+          }
+          console.log(req.query.uid);
+        }   
+        
+        const cursor = expenseCollection.find(query);
+        const myexpense = await cursor.toArray();
+        res.send( myexpense );
+      
+           });
+  
+
+    //   app.get('/expense/:uid', async (req, res) => {
+
+    //     const uid = req.params.uid;
+    //     const query = { uid }
+    //     console.log(uid);
+    //     const cursor = await expenseCollection.find(query);
+    //     const expense = await cursor.toArray();
+    //     res.send(expense);
+
+    // });
        
 
        
