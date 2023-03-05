@@ -58,20 +58,21 @@ async function run(){
 
       })
 
-      app.get('/expense', async(req,res) => {
-        let query = {};
-        if(req.query.uid){
-          query = {
-               uid: req.query.uid
-          }
-          console.log(req.query.uid);
-        }   
-        
-        const cursor = expenseCollection.find(query);
-        const myexpense = await cursor.toArray();
-        res.send( myexpense );
-      
-      });
+           app.get('/expense', async (req, res) => {
+           let query = {};
+         
+           if (req.query.uid) {
+             query = {
+               uid: req.query.uid,
+               is_deleted: false, // only show expenses that are not deleted
+             };
+           }
+         
+           const cursor = expenseCollection.find(query);
+           const expenses = await cursor.toArray();
+           res.send(expenses);
+         });
+
   
 
     //   app.get('/expense/:uid', async (req, res) => {
